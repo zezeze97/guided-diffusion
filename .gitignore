@@ -1,3 +1,8 @@
 .DS_Store
 __pycache__/
 classify_image_graph_def.pb
+Guided-Diffusion-Pretrained-Ckpts
+guided_diffusion.egg-info/
+Guided-Diffusion-Output
+datasets/CottonWeedID15-sub10
+.vscode/

@@ -26,6 +26,11 @@ def main():
     model, diffusion = create_model_and_diffusion(
         **args_to_dict(args, model_and_diffusion_defaults().keys())
     )
+    if args.pretrained_ckpt is not None:
+        logger.log("loading pretrained ckpt")
+        pretrained_ckpt_dict = dist_util.load_state_dict(args.pretrained_ckpt, map_location="cpu")
+        del pretrained_ckpt_dict['label_emb.weight']
+        model.load_state_dict(pretrained_ckpt_dict, strict=False)
     model.to(dist_util.dev())
     schedule_sampler = create_named_schedule_sampler(args.schedule_sampler, diffusion)
 
@@ -72,6 +77,7 @@ def create_argparser():
         resume_checkpoint="",
         use_fp16=False,
         fp16_scale_growth=1e-3,
+        pretrained_ckpt=None,
     )
     defaults.update(model_and_diffusion_defaults())
     parser = argparse.ArgumentParser()

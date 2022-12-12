@@ -35,6 +35,12 @@ def main():
     model, diffusion = create_classifier_and_diffusion(
         **args_to_dict(args, classifier_and_diffusion_defaults().keys())
     )
+    if args.pretrained_ckpt is not None:
+        logger.log("loading pretrained ckpt")
+        pretrained_ckpt_dict = dist_util.load_state_dict(args.pretrained_ckpt, map_location="cpu")
+        del pretrained_ckpt_dict['out.2.c_proj.weight']
+        del pretrained_ckpt_dict['out.2.c_proj.bias']
+        model.load_state_dict(pretrained_ckpt_dict, strict=False)
     model.to(dist_util.dev())
     if args.noised:
         schedule_sampler = create_named_schedule_sampler(
@@ -215,6 +221,7 @@ def create_argparser():
         log_interval=10,
         eval_interval=5,
         save_interval=10000,
+        pretrained_ckpt=None
     )
     defaults.update(classifier_and_diffusion_defaults())
     parser = argparse.ArgumentParser()
