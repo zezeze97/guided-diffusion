@@ -158,7 +158,6 @@ class TrainLoop:
             batch, cond = next(self.data)
             self.run_step(batch, cond)
             if self.step % self.log_interval == 0:
-                print("step ",self.step)
                 logger.dumpkvs()
             if self.step % self.save_interval == 0:
                 self.save()

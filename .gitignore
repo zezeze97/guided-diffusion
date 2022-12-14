@@ -5,4 +5,5 @@ Guided-Diffusion-Pretrained-Ckpts
 guided_diffusion.egg-info/
 Guided-Diffusion-Output
 datasets/CottonWeedID15-sub10
+datasets/CottonWeedID15-sub-sample100
 .vscode/
