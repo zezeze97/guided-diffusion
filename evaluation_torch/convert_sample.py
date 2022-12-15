@@ -4,8 +4,8 @@ import os
 import cv2
 
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-parser.add_argument('--sample_path', type=str, default='./Guided-Diffusion-Output/sample-no-guided/samples_100x256x256x3.npz')
-parser.add_argument('--save_path', type=str, default='./Guided-Diffusion-Output/sample-no-guided/imgs')
+parser.add_argument('--sample_path', type=str, default='./Guided-Diffusion-Output/sample-no-guided-step1000/samples_100x256x256x3.npz')
+parser.add_argument('--save_path', type=str, default='./Guided-Diffusion-Output/sample-no-guided-step1000/imgs')
 
 def main():
     args = parser.parse_args()
