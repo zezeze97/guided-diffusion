@@ -75,6 +75,6 @@ if __name__ == '__main__':
         img = cv2.imread(os.path.join(sample_path, img_name))
         imgs.append(np.transpose(img,[2,0,1]))
     imgs = np.array(imgs)
-    score, std = inception_score(imgs, device=None, batch_size=32, resize=False, splits=1)
+    score, std = inception_score(imgs, device=device, batch_size=32, resize=False, splits=1)
     print(f'Inception score is {score}')
     
