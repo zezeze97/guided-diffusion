@@ -1,5 +1,4 @@
-# modified from https://github.com/youngjung/improved-precision-and-recall-metric-pytorch
-from __future__ import print_function, division
+#!/usr/bin/env python3
 import os
 from functools import partial
 from collections import namedtuple
@@ -23,6 +22,7 @@ except ImportError:
         return range(x)
 
 import torch
+import torchvision.models as models
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
@@ -32,18 +32,14 @@ PrecisionAndRecall = namedtuple('PrecisinoAndRecall', ['precision', 'recall'])
 
 
 class IPR():
-    def __init__(self, batch_size=50, k=3, num_samples=10000, task='deepweeds', model=None):
+    def __init__(self, batch_size=50, k=3, num_samples=10000, model=None):
         self.manifold_ref = None
         self.batch_size = batch_size
         self.k = k
         self.num_samples = num_samples
         if model is None:
             print('loading vgg16 for improved precision and recall...', end='', flush=True)
-            if task == 'cottonweedid15':
-                self.vgg16 = torch.load('vgg16_0.pth').to("cuda")
-            elif task == 'deepweeds':
-                self.vgg16 = torch.load('vgg16_0_A.pth').to("cuda")
-            self.vgg16.eval()
+            self.vgg16 = models.vgg16(pretrained=True).cuda().eval()
             print('done')
         else:
             self.vgg16 = model
@@ -328,21 +324,53 @@ def get_custom_loader(image_dir_or_fnames, image_size=224, batch_size=50, num_wo
     return data_loader
 
 
+def toy():
+    offset = 2
+    feats_real = np.random.rand(10).reshape(-1, 1)
+    feats_fake = np.random.rand(10).reshape(-1, 1) + offset
+    feats_real[0] = offset
+    feats_fake[0] = 1
+    print('real:', feats_real)
+    print('fake:', feats_fake)
+
+    print('computing pairwise distances...')
+    distances_real = compute_pairwise_distances(feats_real)
+    print('distances to radii...')
+    radii_real = distances2radii(distances_real)
+    manifold_real = Manifold(feats_real, radii_real)
+
+    print('computing pairwise distances...')
+    distances_fake = compute_pairwise_distances(feats_fake)
+    print('distances to radii...')
+    radii_fake = distances2radii(distances_fake)
+    manifold_fake = Manifold(feats_fake, radii_fake)
+
+    precision = compute_metric(manifold_real, feats_fake)
+    recall = compute_metric(manifold_fake, feats_real)
+    print('precision:', precision)
+    print('recall:', recall)
+
+
 if __name__ == '__main__':
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--task', type=str, required=False,
-                        default='deepweeds', help="choose from cottonweedid15 or deepweeds")
-    parser.add_argument('--path_real', type=str, default='./datasets/CottonWeedID15-sub-sample100', help='Path to the real images')
-    parser.add_argument('--path_fake', type=str, default='./Guided-Diffusion-Output/sample-no-guided-step1000/imgs',help='Path to the fake images')
+    parser.add_argument('path_real', type=str, help='Path to the real images')
+    parser.add_argument('path_fake', type=str, help='Path to the fake images')
     parser.add_argument('--batch_size', type=int, default=50, help='Batch size to use')
     parser.add_argument('--k', type=int, default=3, help='Batch size to use')
     parser.add_argument('--num_samples', type=int, default=2000, help='number of samples to use')
+    parser.add_argument('--toy', action='store_true')
     parser.add_argument('--fname_precalc', type=str, default='', help='fname for precalculating manifold')
     args = parser.parse_args()
 
+    # toy problem
+    if args.toy:
+        print('running toy example...')
+        toy()
+        exit()
+
     # Example usage: with real and fake paths
     # python improved_precision_recall.py [path_real] [path_fake]
-    ipr = IPR(args.batch_size, args.k, args.num_samples, task=args.task)
+    ipr = IPR(args.batch_size, args.k, args.num_samples)
     with torch.no_grad():
         # real
         ipr.compute_manifold_ref(args.path_real)
